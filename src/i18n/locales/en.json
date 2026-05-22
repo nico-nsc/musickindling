@@ -1,0 +1,27 @@
+{
+  "selector": {
+    "tonic_label": "Key",
+    "mode_major": "Major",
+    "mode_natural_minor": "Natural minor"
+  },
+  "settings": {
+    "title": "Settings",
+    "enharmonic": {
+      "label": "Out-of-scale notes",
+      "both": "♯ & ♭",
+      "sharp": "♯",
+      "flat": "♭"
+    },
+    "nomenclature": {
+      "label": "Interval names",
+      "anglo": "Modern",
+      "academic": "Academic",
+      "french": "Solfège"
+    },
+    "instrument": {
+      "label": "Instrument",
+      "guitar": "Guitar",
+      "piano": "Piano"
+    }
+  }
+}
