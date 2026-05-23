@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useApp } from '../context/AppContext'
 import type { EnharmonicDisplay, Instrument } from '../context/AppContext'
 import type { IntervalNomenclature } from '../data/intervals'
+import { Toggle } from './Sidebar'
 
 // Generic row of option buttons — reused for each setting section
 function OptionRow<T extends string>({
@@ -40,6 +41,7 @@ export function Settings() {
     enharmonicDisplay, setEnharmonicDisplay,
     intervalNomenclature, setIntervalNomenclature,
     selectedInstrument, setSelectedInstrument,
+    showBlockTitles, setShowBlockTitles,
   } = useApp()
 
   const enharmonicOptions: { value: EnharmonicDisplay; label: string }[] = [
@@ -124,6 +126,11 @@ export function Settings() {
                   onSelect={setSelectedInstrument}
                 />
               </div>
+
+              <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
+                <span className="text-xs font-medium text-gray-500">{t('settings.block_titles.label')}</span>
+                <Toggle checked={showBlockTitles} onChange={setShowBlockTitles} />
+              </label>
 
             </div>
           </div>

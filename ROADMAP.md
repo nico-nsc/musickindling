@@ -2,18 +2,17 @@
 
 ## Progress
 
-- [x] Setup — Vite + React + TypeScript + Tailwind + Tonal.js + react-i18next
-- [x] GitHub Pages deployment — automated via GitHub Actions on every push to main
-- [x] Step 1 — Foundation: tonality selector + chromatic template
-- [x] Step 2 — Global parameters: enharmonic display, interval nomenclature, instrument
-  Settings panel (⚙ modal), localStorage persistence for all global parameters
-- [ ] Step 3 — Minor scale variants (harmonic + melodic)
-- [ ] Step 4 — Relative major/minor
+- [x] Setup
+- [x] Step 1 — Foundation
+- [x] Step 2 — Global parameters + Settings Panel
+- [x] Step 3 — Minor scale variants
+- [ ] Step 4 — Relative
 - [ ] Step 5 — Circle of fifths neighbours
 - [ ] Step 6 — Secondary dominants
 - [ ] Step 7 — Harmonic proximity
 - [ ] Step 8 — Scale reference
-- [ ] Step 9 — Chord diagrams (hover popup)
+- [ ] Step 9 — Chord diagrams
+- [x] GitHub Pages deployment
 
 ---
 
@@ -52,7 +51,7 @@ Degree structure is mode-dependent:
 
 ---
 
-## Step 2 — Global parameters
+## Step 2 — Global parameters + Settings Panel
 
 Enharmonic display (applies only to notes outside the scale):
 - Both (C#/Db) ← default
@@ -87,15 +86,38 @@ Instrument (affects chord diagrams):
 - Guitar ← default
 - Piano
 
+Settings Panel:
+- ⚙ button in header → centered modal, backdrop click to close
+- Reusable `OptionRow<T>` component for all option groups
+- localStorage persistence: enharmonicDisplay, intervalNomenclature, selectedInstrument
+- selectedTonic and selectedMode are session-only (not persisted)
+
 ---
 
-## Step 3 — Minor scale variants
+## Step 3 — Minor scale variants ✓
 
-Toggle: "Show minor variants" (on by default, global)
-Displayed only if minor mode is selected anywhere in the tool
+Toggle: "Show minor variants" (on by default, persisted)
+Applies ONLY to the main tonality — not to relative or neighbours
+Displayed only if minor mode is selected as main tonality
 
-- [ ] Harmonic minor — additional row, yellow = present in harmonic, absent from natural minor
-- [ ] Melodic minor ascending — same display logic, row below harmonic minor
+- [x] Harmonic minor — degree row + note row below natural minor
+      Yellow = note present in harmonic, absent from natural minor
+- [x] Melodic minor ascending — degree row + note row below harmonic
+      Same yellow highlight logic
+
+Degree labels defined in `src/data/degrees.ts` — human-editable, never computed.
+Degrees per variant:
+- Harmonic minor: i ii° III+ iv V VI vii°
+- Melodic minor ascending: i ii III+ IV V vi° vii°
+
+### Layout
+- Sidebar (desktop, collapsible) + bottom drawer (mobile) for toggles
+- Chromatic template uses a 3-column left structure:
+  `[block title col] [scale name col] [13 note cells]`
+  Block title col shows "Key" / "Minor variants" on the degree row of each block
+  Both sticky columns freeze during horizontal scroll
+- Block titles toggle in Settings (persisted), animates with transition-[width] / transition-[left]
+- `max-w-5xl` on content wrapper (up from max-w-4xl) to accommodate the extra column
 
 ---
 
@@ -103,7 +125,10 @@ Displayed only if minor mode is selected anywhere in the tool
 
 Toggle on/off (on by default)
 
-- [ ] Relative major/minor — same key signature, different tonal center, full row display
+- [ ] Relative major/minor — same key signature, different tonal center
+      Full row display (same 12-note template)
+      Always displayed in natural minor if relative is minor
+      (circle of fifths is built on natural minor — no variants here)
 
 ---
 

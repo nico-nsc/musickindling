@@ -12,26 +12,33 @@ interface AppState {
   enharmonicDisplay: EnharmonicDisplay
   intervalNomenclature: IntervalNomenclature
   selectedInstrument: Instrument
+  showMinorVariants: boolean
+  showBlockTitles: boolean
   setSelectedTonic: (tonic: string) => void
   setSelectedMode: (mode: Mode) => void
   setEnharmonicDisplay: (value: EnharmonicDisplay) => void
   setIntervalNomenclature: (value: IntervalNomenclature) => void
   setSelectedInstrument: (value: Instrument) => void
+  setShowMinorVariants: (value: boolean) => void
+  setShowBlockTitles: (value: boolean) => void
 }
 
-// localStorage key for persisted settings
 const STORAGE_KEY = 'musickindling_settings'
 
 interface PersistedSettings {
   enharmonicDisplay: EnharmonicDisplay
   intervalNomenclature: IntervalNomenclature
   selectedInstrument: Instrument
+  showMinorVariants: boolean
+  showBlockTitles: boolean
 }
 
 const DEFAULT_SETTINGS: PersistedSettings = {
   enharmonicDisplay: 'both',
   intervalNomenclature: 'anglo',
   selectedInstrument: 'guitar',
+  showMinorVariants: true,
+  showBlockTitles: true,
 }
 
 function loadSettings(): PersistedSettings {
@@ -54,21 +61,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [enharmonicDisplay, setEnharmonicDisplay] = useState<EnharmonicDisplay>(saved.enharmonicDisplay)
   const [intervalNomenclature, setIntervalNomenclature] = useState<IntervalNomenclature>(saved.intervalNomenclature)
   const [selectedInstrument, setSelectedInstrument] = useState<Instrument>(saved.selectedInstrument)
+  const [showMinorVariants, setShowMinorVariants] = useState<boolean>(saved.showMinorVariants)
+  const [showBlockTitles, setShowBlockTitles] = useState<boolean>(saved.showBlockTitles)
 
-  // Persist settings to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       enharmonicDisplay,
       intervalNomenclature,
       selectedInstrument,
+      showMinorVariants,
+      showBlockTitles,
     }))
-  }, [enharmonicDisplay, intervalNomenclature, selectedInstrument])
+  }, [enharmonicDisplay, intervalNomenclature, selectedInstrument, showMinorVariants, showBlockTitles])
 
   return (
     <AppContext.Provider
       value={{
-        selectedTonic, selectedMode, enharmonicDisplay, intervalNomenclature, selectedInstrument,
-        setSelectedTonic, setSelectedMode, setEnharmonicDisplay, setIntervalNomenclature, setSelectedInstrument,
+        selectedTonic, selectedMode, enharmonicDisplay, intervalNomenclature, selectedInstrument, showMinorVariants, showBlockTitles,
+        setSelectedTonic, setSelectedMode, setEnharmonicDisplay, setIntervalNomenclature, setSelectedInstrument, setShowMinorVariants, setShowBlockTitles,
       }}
     >
       {children}

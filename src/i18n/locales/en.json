@@ -22,6 +22,22 @@
       "label": "Instrument",
       "guitar": "Guitar",
       "piano": "Piano"
+    },
+    "block_titles": {
+      "label": "Block titles"
     }
+  },
+  "sidebar": {
+    "minor_variants": "Minor variants"
+  },
+  "scale_labels": {
+    "major": "Major",
+    "natural_minor": "Nat. minor",
+    "harmonic_minor": "Harmonic",
+    "melodic_minor": "Melodic asc."
+  },
+  "block_labels": {
+    "tonality": "Key",
+    "minor_variants": "Minor variants"
   }
 }
