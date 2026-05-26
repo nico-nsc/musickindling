@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useApp } from '../context/AppContext'
-import { buildChromaticRowData, buildVariantRowData, getRelativeTonic } from '../music/scaleUtils'
+import { buildChromaticRowData, buildVariantRowData, getRelativeTonic, getNeighbourTonics, buildNeighbourRowData } from '../music/scaleUtils'
 import { INTERVAL_LABELS } from '../data/intervals'
 
 const CELL_CLASS = 'w-14 shrink-0 text-center text-xs py-1 px-0.5'
@@ -11,7 +11,7 @@ const LABEL_CLASS = 'sticky z-10 bg-white w-24 shrink-0 flex items-center justif
 
 export function ChromaticTemplate() {
   const { t } = useTranslation()
-  const { selectedTonic, selectedMode, enharmonicDisplay, intervalNomenclature, showMinorVariants, showBlockTitles, showRelative } = useApp()
+  const { selectedTonic, selectedMode, enharmonicDisplay, intervalNomenclature, showMinorVariants, showBlockTitles, showRelative, showNeighbours } = useApp()
 
   const cells = buildChromaticRowData(selectedTonic, selectedMode, enharmonicDisplay)
   const intervalLabels = INTERVAL_LABELS[intervalNomenclature]
@@ -22,6 +22,10 @@ export function ChromaticTemplate() {
 
   const relative = getRelativeTonic(selectedTonic, selectedMode)
   const relativeCells = showRelative ? buildChromaticRowData(relative.tonic, relative.mode, enharmonicDisplay) : []
+
+  const neighbours = getNeighbourTonics(selectedTonic)
+  const leftCells  = showNeighbours ? buildNeighbourRowData(neighbours.left,  selectedMode, selectedTonic, enharmonicDisplay) : []
+  const rightCells = showNeighbours ? buildNeighbourRowData(neighbours.right, selectedMode, selectedTonic, enharmonicDisplay) : []
 
   const titleW = showBlockTitles ? '5rem' : '0px'
 
@@ -41,7 +45,7 @@ export function ChromaticTemplate() {
         </div>
 
         {/* Degree row — block title "Tonalité" on this row */}
-        <div className="flex gap-1 border-b border-gray-200">
+        <div className="flex gap-1">
           <div className={TITLE_CELL_CLASS} style={{ width: titleW }}>
             {t('block_labels.tonality')}
           </div>
@@ -175,7 +179,7 @@ export function ChromaticTemplate() {
           </div>
 
           {/* Relative notes row */}
-          <div className="flex gap-1 pt-1">
+          <div className="flex gap-1 pt-1 pb-1 border-b border-gray-200">
             <div className={TITLE_CELL_CLASS} style={{ width: titleW }} />
             <div className={LABEL_CLASS} style={{ left: titleW }}>
               {t(relative.mode === 'major' ? 'scale_labels.major' : 'scale_labels.natural_minor')}
@@ -185,6 +189,85 @@ export function ChromaticTemplate() {
                 key={`rel-note-${cell.semitones}`}
                 className={`${CELL_CLASS} rounded-md font-medium border ${
                   cell.isInScale
+                    ? 'bg-white text-black border-gray-300 shadow-sm'
+                    : 'bg-gray-100 text-gray-400 border-gray-200'
+                }`}
+              >
+                {cell.noteName}
+              </div>
+            ))}
+          </div>
+
+        </>)}
+
+        {/* Neighbours block */}
+        {showNeighbours && (<>
+
+          {/* Left neighbour degree row — block title "Neighbours" */}
+          <div className="flex gap-1 mt-3">
+            <div className={TITLE_CELL_CLASS} style={{ width: titleW }}>
+              {t('block_labels.neighbours')}
+            </div>
+            <div className={LABEL_CLASS} style={{ left: titleW }}>←</div>
+            {leftCells.map((cell) => (
+              <div
+                key={`left-deg-${cell.semitones}`}
+                className={`${CELL_CLASS} font-bold ${cell.isInNeighbour ? 'text-black' : 'text-gray-200'}`}
+              >
+                {cell.degreeLabel ?? ' '}
+              </div>
+            ))}
+          </div>
+
+          {/* Left neighbour notes row */}
+          <div className="flex gap-1 pt-1 pb-1">
+            <div className={TITLE_CELL_CLASS} style={{ width: titleW }} />
+            <div className={LABEL_CLASS} style={{ left: titleW }}>
+              {t(selectedMode === 'major' ? 'scale_labels.major' : 'scale_labels.natural_minor')}
+            </div>
+            {leftCells.map((cell) => (
+              <div
+                key={`left-note-${cell.semitones}`}
+                className={`${CELL_CLASS} rounded-md font-medium border ${
+                  cell.isHighlighted
+                    ? 'bg-yellow-100 text-black border-yellow-300'
+                    : cell.isInNeighbour
+                    ? 'bg-white text-black border-gray-300 shadow-sm'
+                    : 'bg-gray-100 text-gray-400 border-gray-200'
+                }`}
+              >
+                {cell.noteName}
+              </div>
+            ))}
+          </div>
+
+          {/* Right neighbour degree row */}
+          <div className="flex gap-1 mt-3">
+            <div className={TITLE_CELL_CLASS} style={{ width: titleW }} />
+            <div className={LABEL_CLASS} style={{ left: titleW }}>→</div>
+            {rightCells.map((cell) => (
+              <div
+                key={`right-deg-${cell.semitones}`}
+                className={`${CELL_CLASS} font-bold ${cell.isInNeighbour ? 'text-black' : 'text-gray-200'}`}
+              >
+                {cell.degreeLabel ?? ' '}
+              </div>
+            ))}
+          </div>
+
+          {/* Right neighbour notes row */}
+          <div className="flex gap-1 pt-1">
+            <div className={TITLE_CELL_CLASS} style={{ width: titleW }} />
+            <div className={LABEL_CLASS} style={{ left: titleW }}>
+              {t(selectedMode === 'major' ? 'scale_labels.major' : 'scale_labels.natural_minor')}
+            </div>
+            {rightCells.map((cell) => (
+              <div
+                key={`right-note-${cell.semitones}`}
+                className={`${CELL_CLASS} rounded-md font-medium border ${
+                  cell.isHighlighted
+                    ? 'bg-yellow-100 text-black border-yellow-300'
+                    : cell.isInNeighbour
                     ? 'bg-white text-black border-gray-300 shadow-sm'
                     : 'bg-gray-100 text-gray-400 border-gray-200'
                 }`}

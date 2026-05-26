@@ -29,7 +29,8 @@
   },
   "sidebar": {
     "minor_variants": "Variantes mineures",
-    "relative": "Relative"
+    "relative": "Relative",
+    "neighbours": "Voisins"
   },
   "scale_labels": {
     "major": "Majeur",
@@ -40,6 +41,7 @@
   "block_labels": {
     "tonality": "Clé",
     "minor_variants": "Variantes mineures",
-    "relative": "Relative"
+    "relative": "Relative",
+    "neighbours": "Voisins"
   }
 }

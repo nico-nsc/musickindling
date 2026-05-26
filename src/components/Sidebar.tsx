@@ -22,7 +22,7 @@ export function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: 
 
 export function SidebarContent() {
   const { t } = useTranslation()
-  const { showMinorVariants, setShowMinorVariants, showRelative, setShowRelative } = useApp()
+  const { showMinorVariants, setShowMinorVariants, showRelative, setShowRelative, showNeighbours, setShowNeighbours } = useApp()
 
   return (
     <div className="flex flex-col gap-3">
@@ -33,6 +33,10 @@ export function SidebarContent() {
       <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
         <span className="text-sm text-gray-700">{t('sidebar.relative')}</span>
         <Toggle checked={showRelative} onChange={setShowRelative} />
+      </label>
+      <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
+        <span className="text-sm text-gray-700">{t('sidebar.neighbours')}</span>
+        <Toggle checked={showNeighbours} onChange={setShowNeighbours} />
       </label>
     </div>
   )

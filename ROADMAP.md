@@ -7,7 +7,7 @@
 - [x] Step 2 — Global parameters + Settings Panel
 - [x] Step 3 — Minor scale variants
 - [x] Step 4 — Relative
-- [ ] Step 5 — Circle of fifths neighbours
+- [x] Step 5 — Circle of fifths neighbours
 - [ ] Step 6 — Secondary dominants
 - [ ] Step 7 — Harmonic proximity
 - [ ] Step 8 — Scale reference
@@ -138,12 +138,23 @@ Scale name label = "Major" / "Nat. minor" — tonic is implicit from the degree 
 
 ---
 
-## Step 5 — Circle of fifths neighbours
+## Step 5 — Circle of fifths neighbours ✓
 
-Toggle on/off (on by default), same mode as home tonality
+One toggle: "Neighbours" in sidebar (on by default, persisted), same mode as home tonality
 
-- [ ] Left and right neighbours — yellow = note present in neighbour, absent from main tonality
-- [ ] Natural transition chords toward neighbours
+- [x] Left neighbour (-P4 = -P5 going left on circle) — yellow = note in neighbour, absent from main
+- [x] Right neighbour (+P5) — same display logic
+
+`getNeighbourTonics(tonic)` in scaleUtils:
+- left → +P4 (5 semitones)
+- right → +P5 (7 semitones)
+
+`buildNeighbourRowData(neighbourTonic, mode, mainTonic, enharmonicDisplay)`:
+- `isHighlighted` = note in neighbour scale but NOT in main scale → yellow cell
+- Labels: ← / → in scale name column
+
+Separator lines: border-b after tonality notes row, after relative notes row, after neighbours (no border within each block)
+No transition chords in this step — deferred (see Ideas to explore)
 
 ---
 
@@ -207,6 +218,7 @@ Popup on hover on any chord anywhere in the tool
 
 - Tonality selector as a circle of fifths visual (instead of dropdown)
 - User-configurable block order (drag-and-drop or ↑↓ in sidebar, persisted in localStorage)
+- Pivot chord modulation: highlight shared chords between main tonality and its neighbours (needs Steps 6 & 7 first for full context)
 
 ---
 

@@ -18,6 +18,75 @@ export function getRelativeTonic(tonic: string, mode: Mode): { tonic: string; mo
   }
 }
 
+export function getNeighbourTonics(tonic: string): { left: string; right: string } {
+  return {
+    left:  Note.get(Note.transpose(tonic, '4P')).pc ?? Note.transpose(tonic, '4P'),
+    right: Note.get(Note.transpose(tonic, '5P')).pc ?? Note.transpose(tonic, '5P'),
+  }
+}
+
+export interface NeighbourCellData {
+  semitones: number
+  noteName: string
+  degreeLabel: string | null
+  isInNeighbour: boolean
+  isHighlighted: boolean
+}
+
+export function buildNeighbourRowData(
+  neighbourTonic: string,
+  mode: Mode,
+  mainTonic: string,
+  enharmonicDisplay: EnharmonicDisplay = 'both'
+): NeighbourCellData[] {
+  const mainScaleChromas = new Set(
+    Scale.get(`${mainTonic} ${getTonalScaleName(mode)}`).notes.map(n => Note.get(n).chroma ?? 0)
+  )
+
+  const neighbourNotes = Scale.get(`${neighbourTonic} ${getTonalScaleName(mode)}`).notes
+  const neighbourNoteByChroma: Record<number, string> = {}
+  const degreeLabelByChroma: Record<number, string> = {}
+  const degreeLabels = mode === 'major' ? DEGREE_LABELS_MAJOR : DEGREE_LABELS_NATURAL_MINOR
+
+  for (let i = 0; i < neighbourNotes.length; i++) {
+    const chroma = Note.get(neighbourNotes[i]).chroma ?? 0
+    neighbourNoteByChroma[chroma] = Note.get(neighbourNotes[i]).pc ?? neighbourNotes[i]
+    degreeLabelByChroma[chroma] = degreeLabels[i]
+  }
+
+  const tonicChroma = Note.get(neighbourTonic).chroma ?? 0
+  const chromaticNames =
+    enharmonicDisplay === 'sharp' ? CHROMATIC_SHARP_NAMES :
+    enharmonicDisplay === 'flat'  ? CHROMATIC_FLAT_NAMES  :
+    CHROMATIC_BOTH_NAMES
+
+  const cells: NeighbourCellData[] = []
+
+  for (let semitones = 0; semitones <= 12; semitones++) {
+    const absoluteChroma = (tonicChroma + semitones) % 12
+    const isOctave = semitones === 12
+    const isInNeighbour = isOctave || absoluteChroma in neighbourNoteByChroma
+    const isHighlighted = !isOctave && isInNeighbour && !mainScaleChromas.has(absoluteChroma)
+
+    let noteName: string
+    if (isOctave) {
+      noteName = Note.get(neighbourTonic).pc ?? neighbourTonic
+    } else if (isInNeighbour) {
+      noteName = neighbourNoteByChroma[absoluteChroma]
+    } else {
+      noteName = chromaticNames[absoluteChroma]
+    }
+
+    const degreeLabel = (!isOctave && isInNeighbour)
+      ? (degreeLabelByChroma[absoluteChroma] ?? null)
+      : null
+
+    cells.push({ semitones, noteName, degreeLabel, isInNeighbour, isHighlighted })
+  }
+
+  return cells
+}
+
 function getTonalScaleName(mode: Mode): string {
   return mode === 'major' ? 'major' : 'minor'
 }
