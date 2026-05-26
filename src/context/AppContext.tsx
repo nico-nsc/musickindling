@@ -14,6 +14,7 @@ interface AppState {
   selectedInstrument: Instrument
   showMinorVariants: boolean
   showBlockTitles: boolean
+  showRelative: boolean
   setSelectedTonic: (tonic: string) => void
   setSelectedMode: (mode: Mode) => void
   setEnharmonicDisplay: (value: EnharmonicDisplay) => void
@@ -21,6 +22,7 @@ interface AppState {
   setSelectedInstrument: (value: Instrument) => void
   setShowMinorVariants: (value: boolean) => void
   setShowBlockTitles: (value: boolean) => void
+  setShowRelative: (value: boolean) => void
 }
 
 const STORAGE_KEY = 'musickindling_settings'
@@ -31,6 +33,7 @@ interface PersistedSettings {
   selectedInstrument: Instrument
   showMinorVariants: boolean
   showBlockTitles: boolean
+  showRelative: boolean
 }
 
 const DEFAULT_SETTINGS: PersistedSettings = {
@@ -39,6 +42,7 @@ const DEFAULT_SETTINGS: PersistedSettings = {
   selectedInstrument: 'guitar',
   showMinorVariants: true,
   showBlockTitles: true,
+  showRelative: true,
 }
 
 function loadSettings(): PersistedSettings {
@@ -63,6 +67,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedInstrument, setSelectedInstrument] = useState<Instrument>(saved.selectedInstrument)
   const [showMinorVariants, setShowMinorVariants] = useState<boolean>(saved.showMinorVariants)
   const [showBlockTitles, setShowBlockTitles] = useState<boolean>(saved.showBlockTitles)
+  const [showRelative, setShowRelative] = useState<boolean>(saved.showRelative)
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -71,14 +76,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       selectedInstrument,
       showMinorVariants,
       showBlockTitles,
+      showRelative,
     }))
-  }, [enharmonicDisplay, intervalNomenclature, selectedInstrument, showMinorVariants, showBlockTitles])
+  }, [enharmonicDisplay, intervalNomenclature, selectedInstrument, showMinorVariants, showBlockTitles, showRelative])
 
   return (
     <AppContext.Provider
       value={{
-        selectedTonic, selectedMode, enharmonicDisplay, intervalNomenclature, selectedInstrument, showMinorVariants, showBlockTitles,
-        setSelectedTonic, setSelectedMode, setEnharmonicDisplay, setIntervalNomenclature, setSelectedInstrument, setShowMinorVariants, setShowBlockTitles,
+        selectedTonic, selectedMode, enharmonicDisplay, intervalNomenclature, selectedInstrument, showMinorVariants, showBlockTitles, showRelative,
+        setSelectedTonic, setSelectedMode, setEnharmonicDisplay, setIntervalNomenclature, setSelectedInstrument, setShowMinorVariants, setShowBlockTitles, setShowRelative,
       }}
     >
       {children}

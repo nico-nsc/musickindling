@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useApp } from '../context/AppContext'
-import { buildChromaticRowData, buildVariantRowData } from '../music/scaleUtils'
+import { buildChromaticRowData, buildVariantRowData, getRelativeTonic } from '../music/scaleUtils'
 import { INTERVAL_LABELS } from '../data/intervals'
 
 const CELL_CLASS = 'w-14 shrink-0 text-center text-xs py-1 px-0.5'
@@ -11,7 +11,7 @@ const LABEL_CLASS = 'sticky z-10 bg-white w-24 shrink-0 flex items-center justif
 
 export function ChromaticTemplate() {
   const { t } = useTranslation()
-  const { selectedTonic, selectedMode, enharmonicDisplay, intervalNomenclature, showMinorVariants, showBlockTitles } = useApp()
+  const { selectedTonic, selectedMode, enharmonicDisplay, intervalNomenclature, showMinorVariants, showBlockTitles, showRelative } = useApp()
 
   const cells = buildChromaticRowData(selectedTonic, selectedMode, enharmonicDisplay)
   const intervalLabels = INTERVAL_LABELS[intervalNomenclature]
@@ -19,6 +19,9 @@ export function ChromaticTemplate() {
   const showVariants = selectedMode === 'natural minor' && showMinorVariants
   const harmonicCells = showVariants ? buildVariantRowData(selectedTonic, 'harmonic minor', enharmonicDisplay) : []
   const melodicCells  = showVariants ? buildVariantRowData(selectedTonic, 'melodic minor',  enharmonicDisplay) : []
+
+  const relative = getRelativeTonic(selectedTonic, selectedMode)
+  const relativeCells = showRelative ? buildChromaticRowData(relative.tonic, relative.mode, enharmonicDisplay) : []
 
   const titleW = showBlockTitles ? '5rem' : '0px'
 
@@ -141,6 +144,47 @@ export function ChromaticTemplate() {
                   cell.isHighlighted
                     ? 'bg-yellow-100 text-black border-yellow-300'
                     : cell.isInVariant
+                    ? 'bg-white text-black border-gray-300 shadow-sm'
+                    : 'bg-gray-100 text-gray-400 border-gray-200'
+                }`}
+              >
+                {cell.noteName}
+              </div>
+            ))}
+          </div>
+
+        </>)}
+
+        {/* Relative block */}
+        {showRelative && (<>
+
+          {/* Relative degree row */}
+          <div className="flex gap-1 mt-3">
+            <div className={TITLE_CELL_CLASS} style={{ width: titleW }}>
+              {t('block_labels.relative')}
+            </div>
+            <div className={LABEL_CLASS} style={{ left: titleW }} />
+            {relativeCells.map((cell) => (
+              <div
+                key={`rel-deg-${cell.semitones}`}
+                className={`${CELL_CLASS} font-bold ${cell.isInScale ? 'text-black' : 'text-gray-200'}`}
+              >
+                {cell.degreeLabel ?? ' '}
+              </div>
+            ))}
+          </div>
+
+          {/* Relative notes row */}
+          <div className="flex gap-1 pt-1">
+            <div className={TITLE_CELL_CLASS} style={{ width: titleW }} />
+            <div className={LABEL_CLASS} style={{ left: titleW }}>
+              {t(relative.mode === 'major' ? 'scale_labels.major' : 'scale_labels.natural_minor')}
+            </div>
+            {relativeCells.map((cell) => (
+              <div
+                key={`rel-note-${cell.semitones}`}
+                className={`${CELL_CLASS} rounded-md font-medium border ${
+                  cell.isInScale
                     ? 'bg-white text-black border-gray-300 shadow-sm'
                     : 'bg-gray-100 text-gray-400 border-gray-200'
                 }`}

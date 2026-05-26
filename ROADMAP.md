@@ -6,7 +6,7 @@
 - [x] Step 1 — Foundation
 - [x] Step 2 — Global parameters + Settings Panel
 - [x] Step 3 — Minor scale variants
-- [ ] Step 4 — Relative
+- [x] Step 4 — Relative
 - [ ] Step 5 — Circle of fifths neighbours
 - [ ] Step 6 — Secondary dominants
 - [ ] Step 7 — Harmonic proximity
@@ -121,14 +121,20 @@ Degrees per variant:
 
 ---
 
-## Step 4 — Relative
+## Step 4 — Relative ✓
 
-Toggle on/off (on by default)
+Toggle: "Relative" in sidebar (on by default, persisted)
 
-- [ ] Relative major/minor — same key signature, different tonal center
+- [x] Relative major/minor — same key signature, different tonal center
       Full row display (same 12-note template)
       Always displayed in natural minor if relative is minor
-      (circle of fifths is built on natural minor — no variants here)
+      No minor variants shown for the relative
+
+`getRelativeTonic(tonic, mode)` in scaleUtils:
+- major → +6M (9 semitones) → natural minor
+- natural minor → +3m (3 semitones) → major
+
+Scale name label = "Major" / "Nat. minor" — tonic is implicit from the degree row (i vs I)
 
 ---
 
@@ -200,6 +206,7 @@ Popup on hover on any chord anywhere in the tool
 ## Ideas to explore
 
 - Tonality selector as a circle of fifths visual (instead of dropdown)
+- User-configurable block order (drag-and-drop or ↑↓ in sidebar, persisted in localStorage)
 
 ---
 

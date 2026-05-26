@@ -10,6 +10,14 @@ import {
 
 export type MinorVariant = 'harmonic minor' | 'melodic minor'
 
+export function getRelativeTonic(tonic: string, mode: Mode): { tonic: string; mode: Mode } {
+  const raw = Note.transpose(tonic, mode === 'major' ? '6M' : '3m')
+  return {
+    tonic: Note.get(raw).pc ?? raw,
+    mode: mode === 'major' ? 'natural minor' : 'major',
+  }
+}
+
 function getTonalScaleName(mode: Mode): string {
   return mode === 'major' ? 'major' : 'minor'
 }

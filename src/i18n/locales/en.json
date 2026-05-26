@@ -28,7 +28,8 @@
     }
   },
   "sidebar": {
-    "minor_variants": "Minor variants"
+    "minor_variants": "Minor variants",
+    "relative": "Relative"
   },
   "scale_labels": {
     "major": "Major",
@@ -38,6 +39,7 @@
   },
   "block_labels": {
     "tonality": "Key",
-    "minor_variants": "Minor variants"
+    "minor_variants": "Minor variants",
+    "relative": "Relative"
   }
 }
