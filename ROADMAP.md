@@ -8,10 +8,11 @@
 - [x] Step 3 — Minor scale variants
 - [x] Step 4 — Relative
 - [x] Step 5 — Circle of fifths neighbours
-- [ ] Step 6 — Secondary dominants
-- [ ] Step 7 — Harmonic proximity
-- [ ] Step 8 — Scale reference
-- [ ] Step 9 — Chord diagrams
+- [x] Step 6 — Language toggle + code refactor
+- [ ] Step 7 — Secondary dominants
+- [ ] Step 8 — Harmonic proximity
+- [ ] Step 9 — Scale reference
+- [ ] Step 10 — Chord diagrams
 - [x] GitHub Pages deployment
 
 ---
@@ -158,7 +159,19 @@ No transition chords in this step — deferred (see Ideas to explore)
 
 ---
 
-## Step 6 — Secondary dominants
+## Step 6 — Language toggle + code refactor ✓
+
+- [x] Language toggle FR/EN in Settings panel (persisted in localStorage, no flash on reload)
+- [x] Unified `CellData` interface: `isInScale` + `isNoteInMain` + `isChordInMain`
+      Yellow dark (`CELL_NOTE_ABSENT`) = note absente de la gamme principale
+      Yellow light (`CELL_CHORD_DIFFERS`) = note présente, qualité d'accord différente
+- [x] Chord quality arrays in `degrees.ts` (M/m/d/A per degree, human-editable)
+- [x] Extract `DegreeRow` and `NotesRow` sub-components in ChromaticTemplate
+- [x] `buildDegreeIndexByChroma` helper, `getChromaticNames` helper — remove repetition in builders
+
+---
+
+## Step 7 — Secondary dominants
 
 Toggle on/off (on by default)
 One additional row aligned on the 12-note chromatic template
@@ -172,7 +185,7 @@ Optional toggle: "show 7th" (default off)
 
 ---
 
-## Step 7 — Harmonic proximity
+## Step 8 — Harmonic proximity
 
 Two independent toggles: "Show major proximity" / "Show minor proximity"
 Standalone block, separate from main display
@@ -183,7 +196,7 @@ Standalone block, separate from main display
 
 ---
 
-## Step 8 — Scale reference
+## Step 9 — Scale reference
 
 Toggle: "Show scale reference" (off by default)
 Standalone block, same tonic as user selection
@@ -199,7 +212,7 @@ Extensible: adding a new scale = adding a data entry.
 
 ---
 
-## Step 9 — Chord diagrams
+## Step 10 — Chord diagrams
 
 Global parameter: instrument (Guitar ← default / Piano)
 Popup on hover on any chord anywhere in the tool
@@ -210,7 +223,7 @@ Popup on hover on any chord anywhere in the tool
 
 ---
 
-## Step 10 — GitHub Pages deployment
+## Step 11 — GitHub Pages deployment
 
 ---
 

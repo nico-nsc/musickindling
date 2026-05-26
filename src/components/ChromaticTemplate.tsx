@@ -1,13 +1,64 @@
 import { useTranslation } from 'react-i18next'
 import { useApp } from '../context/AppContext'
 import { buildChromaticRowData, buildVariantRowData, getRelativeTonic, getNeighbourTonics, buildNeighbourRowData } from '../music/scaleUtils'
+import type { CellData } from '../music/scaleUtils'
 import { INTERVAL_LABELS } from '../data/intervals'
 
 const CELL_CLASS = 'w-14 shrink-0 text-center text-xs py-1 px-0.5'
-// Title column: sticky at left-0, width driven by showBlockTitles
 const TITLE_CELL_CLASS = 'sticky left-0 z-20 bg-white shrink-0 overflow-hidden flex items-center justify-start pl-2 text-xs font-bold text-gray-700 transition-[width] duration-200'
-// Scale name column: sticky after the title column
 const LABEL_CLASS = 'sticky z-10 bg-white w-24 shrink-0 flex items-center justify-end pr-3 text-xs text-gray-400 transition-[left] duration-200'
+
+// Note absent from main scale entirely
+const CELL_NOTE_ABSENT  = 'bg-yellow-200 text-black border-yellow-400'
+// Note present in main scale but chord quality differs
+const CELL_CHORD_DIFFERS = 'bg-yellow-50 text-black border-yellow-200'
+
+function DegreeRow({ cells, titleW, title, label, spacing = true }: {
+  cells: CellData[]
+  titleW: string
+  title?: string
+  label?: string
+  spacing?: boolean
+}) {
+  return (
+    <div className={`flex gap-1${spacing ? ' mt-3' : ''}`}>
+      <div className={TITLE_CELL_CLASS} style={{ width: titleW }}>{title}</div>
+      <div className={LABEL_CLASS} style={{ left: titleW }}>{label}</div>
+      {cells.map((cell) => (
+        <div key={cell.semitones} className={`${CELL_CLASS} font-bold ${cell.isInScale ? 'text-black' : 'text-gray-200'}`}>
+          {cell.degreeLabel ?? ' '}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function NotesRow({ cells, titleW, label, closing = false }: {
+  cells: CellData[]
+  titleW: string
+  label?: string
+  closing?: boolean
+}) {
+  return (
+    <div className={`flex gap-1 pt-1 pb-1${closing ? ' border-b border-gray-200' : ''}`}>
+      <div className={TITLE_CELL_CLASS} style={{ width: titleW }} />
+      <div className={LABEL_CLASS} style={{ left: titleW }}>{label}</div>
+      {cells.map((cell) => (
+        <div key={cell.semitones} className={`${CELL_CLASS} rounded-md font-medium border ${
+          cell.isInScale && !cell.isNoteInMain
+            ? CELL_NOTE_ABSENT
+            : cell.isInScale && !cell.isChordInMain
+            ? CELL_CHORD_DIFFERS
+            : cell.isInScale
+            ? 'bg-white text-black border-gray-300 shadow-sm'
+            : 'bg-gray-100 text-gray-400 border-gray-200'
+        }`}>
+          {cell.noteName}
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export function ChromaticTemplate() {
   const { t } = useTranslation()
@@ -28,255 +79,47 @@ export function ChromaticTemplate() {
   const rightCells = showNeighbours ? buildNeighbourRowData(neighbours.right, selectedMode, selectedTonic, enharmonicDisplay) : []
 
   const titleW = showBlockTitles ? '5rem' : '0px'
+  const scaleLabel = t(selectedMode === 'major' ? 'scale_labels.major' : 'scale_labels.natural_minor')
 
   return (
     <div className="overflow-x-auto">
       <div className="w-fit mx-auto">
 
-        {/* Intervals row — title and scale name cells empty */}
+        {/* Intervals row */}
         <div className="flex gap-1 border-b border-gray-200">
           <div className={TITLE_CELL_CLASS} style={{ width: titleW }} />
           <div className={LABEL_CLASS} style={{ left: titleW }} />
           {cells.map((cell) => (
-            <div key={`interval-${cell.semitones}`} className={`${CELL_CLASS} text-gray-400`}>
+            <div key={cell.semitones} className={`${CELL_CLASS} text-gray-400`}>
               {intervalLabels[cell.semitones]}
             </div>
           ))}
         </div>
 
-        {/* Degree row — block title "Tonalité" on this row */}
-        <div className="flex gap-1">
-          <div className={TITLE_CELL_CLASS} style={{ width: titleW }}>
-            {t('block_labels.tonality')}
-          </div>
-          <div className={LABEL_CLASS} style={{ left: titleW }} />
-          {cells.map((cell) => (
-            <div
-              key={`degree-${cell.semitones}`}
-              className={`${CELL_CLASS} font-bold ${cell.isInScale ? 'text-black' : 'text-gray-200'}`}
-            >
-              {cell.degreeLabel ?? ' '}
-            </div>
-          ))}
-        </div>
+        {/* Tonality block */}
+        <DegreeRow cells={cells} titleW={titleW} title={t('block_labels.tonality')} spacing={false} />
+        <NotesRow  cells={cells} titleW={titleW} label={scaleLabel} closing />
 
-        {/* Notes row */}
-        <div className="flex gap-1 pt-1 pb-1 border-b border-gray-200">
-          <div className={TITLE_CELL_CLASS} style={{ width: titleW }} />
-          <div className={LABEL_CLASS} style={{ left: titleW }}>
-            {t(selectedMode === 'major' ? 'scale_labels.major' : 'scale_labels.natural_minor')}
-          </div>
-          {cells.map((cell) => (
-            <div
-              key={`note-${cell.semitones}`}
-              className={`${CELL_CLASS} rounded-md font-medium border ${
-                cell.isInScale
-                  ? 'bg-white text-black border-gray-300 shadow-sm'
-                  : 'bg-gray-100 text-gray-400 border-gray-200'
-              }`}
-            >
-              {cell.noteName}
-            </div>
-          ))}
-        </div>
-
-        {/* Minor variants */}
+        {/* Minor variants block */}
         {showVariants && (<>
-
-          {/* Harmonic degree row — block title "Variantes" on this row */}
-          <div className="flex gap-1 mt-3">
-            <div className={TITLE_CELL_CLASS} style={{ width: titleW }}>
-              {t('block_labels.minor_variants')}
-            </div>
-            <div className={LABEL_CLASS} style={{ left: titleW }} />
-            {harmonicCells.map((cell) => (
-              <div
-                key={`harm-deg-${cell.semitones}`}
-                className={`${CELL_CLASS} font-bold ${cell.isInVariant ? 'text-black' : 'text-gray-200'}`}
-              >
-                {cell.degreeLabel ?? ' '}
-              </div>
-            ))}
-          </div>
-
-          {/* Harmonic notes row */}
-          <div className="flex gap-1 pt-1 pb-1">
-            <div className={TITLE_CELL_CLASS} style={{ width: titleW }} />
-            <div className={LABEL_CLASS} style={{ left: titleW }}>
-              {t('scale_labels.harmonic_minor')}
-            </div>
-            {harmonicCells.map((cell) => (
-              <div
-                key={`harm-note-${cell.semitones}`}
-                className={`${CELL_CLASS} rounded-md font-medium border ${
-                  cell.isHighlighted
-                    ? 'bg-yellow-100 text-black border-yellow-300'
-                    : cell.isInVariant
-                    ? 'bg-white text-black border-gray-300 shadow-sm'
-                    : 'bg-gray-100 text-gray-400 border-gray-200'
-                }`}
-              >
-                {cell.noteName}
-              </div>
-            ))}
-          </div>
-
-          {/* Melodic degree row */}
-          <div className="flex gap-1 mt-3">
-            <div className={TITLE_CELL_CLASS} style={{ width: titleW }} />
-            <div className={LABEL_CLASS} style={{ left: titleW }} />
-            {melodicCells.map((cell) => (
-              <div
-                key={`mel-deg-${cell.semitones}`}
-                className={`${CELL_CLASS} font-bold ${cell.isInVariant ? 'text-black' : 'text-gray-200'}`}
-              >
-                {cell.degreeLabel ?? ' '}
-              </div>
-            ))}
-          </div>
-
-          {/* Melodic notes row */}
-          <div className="flex gap-1 pt-1">
-            <div className={TITLE_CELL_CLASS} style={{ width: titleW }} />
-            <div className={LABEL_CLASS} style={{ left: titleW }}>
-              {t('scale_labels.melodic_minor')}
-            </div>
-            {melodicCells.map((cell) => (
-              <div
-                key={`mel-note-${cell.semitones}`}
-                className={`${CELL_CLASS} rounded-md font-medium border ${
-                  cell.isHighlighted
-                    ? 'bg-yellow-100 text-black border-yellow-300'
-                    : cell.isInVariant
-                    ? 'bg-white text-black border-gray-300 shadow-sm'
-                    : 'bg-gray-100 text-gray-400 border-gray-200'
-                }`}
-              >
-                {cell.noteName}
-              </div>
-            ))}
-          </div>
-
+          <DegreeRow cells={harmonicCells} titleW={titleW} title={t('block_labels.minor_variants')} />
+          <NotesRow  cells={harmonicCells} titleW={titleW} label={t('scale_labels.harmonic_minor')} />
+          <DegreeRow cells={melodicCells}  titleW={titleW} />
+          <NotesRow  cells={melodicCells}  titleW={titleW} label={t('scale_labels.melodic_minor')} closing />
         </>)}
 
         {/* Relative block */}
         {showRelative && (<>
-
-          {/* Relative degree row */}
-          <div className="flex gap-1 mt-3">
-            <div className={TITLE_CELL_CLASS} style={{ width: titleW }}>
-              {t('block_labels.relative')}
-            </div>
-            <div className={LABEL_CLASS} style={{ left: titleW }} />
-            {relativeCells.map((cell) => (
-              <div
-                key={`rel-deg-${cell.semitones}`}
-                className={`${CELL_CLASS} font-bold ${cell.isInScale ? 'text-black' : 'text-gray-200'}`}
-              >
-                {cell.degreeLabel ?? ' '}
-              </div>
-            ))}
-          </div>
-
-          {/* Relative notes row */}
-          <div className="flex gap-1 pt-1 pb-1 border-b border-gray-200">
-            <div className={TITLE_CELL_CLASS} style={{ width: titleW }} />
-            <div className={LABEL_CLASS} style={{ left: titleW }}>
-              {t(relative.mode === 'major' ? 'scale_labels.major' : 'scale_labels.natural_minor')}
-            </div>
-            {relativeCells.map((cell) => (
-              <div
-                key={`rel-note-${cell.semitones}`}
-                className={`${CELL_CLASS} rounded-md font-medium border ${
-                  cell.isInScale
-                    ? 'bg-white text-black border-gray-300 shadow-sm'
-                    : 'bg-gray-100 text-gray-400 border-gray-200'
-                }`}
-              >
-                {cell.noteName}
-              </div>
-            ))}
-          </div>
-
+          <DegreeRow cells={relativeCells} titleW={titleW} title={t('block_labels.relative')} />
+          <NotesRow  cells={relativeCells} titleW={titleW} label={t(relative.mode === 'major' ? 'scale_labels.major' : 'scale_labels.natural_minor')} closing />
         </>)}
 
         {/* Neighbours block */}
         {showNeighbours && (<>
-
-          {/* Left neighbour degree row — block title "Neighbours" */}
-          <div className="flex gap-1 mt-3">
-            <div className={TITLE_CELL_CLASS} style={{ width: titleW }}>
-              {t('block_labels.neighbours')}
-            </div>
-            <div className={LABEL_CLASS} style={{ left: titleW }}>←</div>
-            {leftCells.map((cell) => (
-              <div
-                key={`left-deg-${cell.semitones}`}
-                className={`${CELL_CLASS} font-bold ${cell.isInNeighbour ? 'text-black' : 'text-gray-200'}`}
-              >
-                {cell.degreeLabel ?? ' '}
-              </div>
-            ))}
-          </div>
-
-          {/* Left neighbour notes row */}
-          <div className="flex gap-1 pt-1 pb-1">
-            <div className={TITLE_CELL_CLASS} style={{ width: titleW }} />
-            <div className={LABEL_CLASS} style={{ left: titleW }}>
-              {t(selectedMode === 'major' ? 'scale_labels.major' : 'scale_labels.natural_minor')}
-            </div>
-            {leftCells.map((cell) => (
-              <div
-                key={`left-note-${cell.semitones}`}
-                className={`${CELL_CLASS} rounded-md font-medium border ${
-                  cell.isHighlighted
-                    ? 'bg-yellow-100 text-black border-yellow-300'
-                    : cell.isInNeighbour
-                    ? 'bg-white text-black border-gray-300 shadow-sm'
-                    : 'bg-gray-100 text-gray-400 border-gray-200'
-                }`}
-              >
-                {cell.noteName}
-              </div>
-            ))}
-          </div>
-
-          {/* Right neighbour degree row */}
-          <div className="flex gap-1 mt-3">
-            <div className={TITLE_CELL_CLASS} style={{ width: titleW }} />
-            <div className={LABEL_CLASS} style={{ left: titleW }}>→</div>
-            {rightCells.map((cell) => (
-              <div
-                key={`right-deg-${cell.semitones}`}
-                className={`${CELL_CLASS} font-bold ${cell.isInNeighbour ? 'text-black' : 'text-gray-200'}`}
-              >
-                {cell.degreeLabel ?? ' '}
-              </div>
-            ))}
-          </div>
-
-          {/* Right neighbour notes row */}
-          <div className="flex gap-1 pt-1">
-            <div className={TITLE_CELL_CLASS} style={{ width: titleW }} />
-            <div className={LABEL_CLASS} style={{ left: titleW }}>
-              {t(selectedMode === 'major' ? 'scale_labels.major' : 'scale_labels.natural_minor')}
-            </div>
-            {rightCells.map((cell) => (
-              <div
-                key={`right-note-${cell.semitones}`}
-                className={`${CELL_CLASS} rounded-md font-medium border ${
-                  cell.isHighlighted
-                    ? 'bg-yellow-100 text-black border-yellow-300'
-                    : cell.isInNeighbour
-                    ? 'bg-white text-black border-gray-300 shadow-sm'
-                    : 'bg-gray-100 text-gray-400 border-gray-200'
-                }`}
-              >
-                {cell.noteName}
-              </div>
-            ))}
-          </div>
-
+          <DegreeRow cells={leftCells}  titleW={titleW} title={t('block_labels.neighbours')} label="←" />
+          <NotesRow  cells={leftCells}  titleW={titleW} label={scaleLabel} />
+          <DegreeRow cells={rightCells} titleW={titleW} label="→" />
+          <NotesRow  cells={rightCells} titleW={titleW} label={scaleLabel} closing />
         </>)}
 
       </div>

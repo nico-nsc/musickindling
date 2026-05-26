@@ -25,6 +25,9 @@
     },
     "block_titles": {
       "label": "Block titles"
+    },
+    "language": {
+      "label": "Language"
     }
   },
   "sidebar": {

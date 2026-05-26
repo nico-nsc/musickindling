@@ -6,9 +6,22 @@ import {
   DEGREE_LABELS_NATURAL_MINOR,
   DEGREE_LABELS_HARMONIC_MINOR,
   DEGREE_LABELS_MELODIC_MINOR,
+  CHORD_QUALITIES_MAJOR,
+  CHORD_QUALITIES_NATURAL_MINOR,
+  CHORD_QUALITIES_HARMONIC_MINOR,
+  CHORD_QUALITIES_MELODIC_MINOR,
 } from '../data/degrees'
 
 export type MinorVariant = 'harmonic minor' | 'melodic minor'
+
+export interface CellData {
+  semitones: number
+  noteName: string
+  degreeLabel: string | null
+  isInScale: boolean
+  isNoteInMain: boolean
+  isChordInMain: boolean
+}
 
 export function getRelativeTonic(tonic: string, mode: Mode): { tonic: string; mode: Mode } {
   const raw = Note.transpose(tonic, mode === 'major' ? '6M' : '3m')
@@ -25,68 +38,6 @@ export function getNeighbourTonics(tonic: string): { left: string; right: string
   }
 }
 
-export interface NeighbourCellData {
-  semitones: number
-  noteName: string
-  degreeLabel: string | null
-  isInNeighbour: boolean
-  isHighlighted: boolean
-}
-
-export function buildNeighbourRowData(
-  neighbourTonic: string,
-  mode: Mode,
-  mainTonic: string,
-  enharmonicDisplay: EnharmonicDisplay = 'both'
-): NeighbourCellData[] {
-  const mainScaleChromas = new Set(
-    Scale.get(`${mainTonic} ${getTonalScaleName(mode)}`).notes.map(n => Note.get(n).chroma ?? 0)
-  )
-
-  const neighbourNotes = Scale.get(`${neighbourTonic} ${getTonalScaleName(mode)}`).notes
-  const neighbourNoteByChroma: Record<number, string> = {}
-  const degreeLabelByChroma: Record<number, string> = {}
-  const degreeLabels = mode === 'major' ? DEGREE_LABELS_MAJOR : DEGREE_LABELS_NATURAL_MINOR
-
-  for (let i = 0; i < neighbourNotes.length; i++) {
-    const chroma = Note.get(neighbourNotes[i]).chroma ?? 0
-    neighbourNoteByChroma[chroma] = Note.get(neighbourNotes[i]).pc ?? neighbourNotes[i]
-    degreeLabelByChroma[chroma] = degreeLabels[i]
-  }
-
-  const tonicChroma = Note.get(neighbourTonic).chroma ?? 0
-  const chromaticNames =
-    enharmonicDisplay === 'sharp' ? CHROMATIC_SHARP_NAMES :
-    enharmonicDisplay === 'flat'  ? CHROMATIC_FLAT_NAMES  :
-    CHROMATIC_BOTH_NAMES
-
-  const cells: NeighbourCellData[] = []
-
-  for (let semitones = 0; semitones <= 12; semitones++) {
-    const absoluteChroma = (tonicChroma + semitones) % 12
-    const isOctave = semitones === 12
-    const isInNeighbour = isOctave || absoluteChroma in neighbourNoteByChroma
-    const isHighlighted = !isOctave && isInNeighbour && !mainScaleChromas.has(absoluteChroma)
-
-    let noteName: string
-    if (isOctave) {
-      noteName = Note.get(neighbourTonic).pc ?? neighbourTonic
-    } else if (isInNeighbour) {
-      noteName = neighbourNoteByChroma[absoluteChroma]
-    } else {
-      noteName = chromaticNames[absoluteChroma]
-    }
-
-    const degreeLabel = (!isOctave && isInNeighbour)
-      ? (degreeLabelByChroma[absoluteChroma] ?? null)
-      : null
-
-    cells.push({ semitones, noteName, degreeLabel, isInNeighbour, isHighlighted })
-  }
-
-  return cells
-}
-
 function getTonalScaleName(mode: Mode): string {
   return mode === 'major' ? 'major' : 'minor'
 }
@@ -95,121 +46,150 @@ export function getScaleNotes(tonic: string, mode: Mode): string[] {
   return Scale.get(`${tonic} ${getTonalScaleName(mode)}`).notes
 }
 
-export interface ChromaticCellData {
-  semitones: number
-  noteName: string
-  degreeLabel: string | null
-  isInScale: boolean
+function getChromaticNames(enharmonicDisplay: EnharmonicDisplay) {
+  return enharmonicDisplay === 'sharp' ? CHROMATIC_SHARP_NAMES
+       : enharmonicDisplay === 'flat'  ? CHROMATIC_FLAT_NAMES
+       : CHROMATIC_BOTH_NAMES
+}
+
+function buildDegreeIndexByChroma(notes: string[]): Record<number, number> {
+  const map: Record<number, number> = {}
+  for (let i = 0; i < notes.length; i++) {
+    map[Note.get(notes[i]).chroma ?? 0] = i
+  }
+  return map
 }
 
 export function buildChromaticRowData(
   tonic: string,
   mode: Mode,
   enharmonicDisplay: EnharmonicDisplay = 'both'
-): ChromaticCellData[] {
+): CellData[] {
   const scaleNotes = getScaleNotes(tonic, mode)
   const tonicChroma = Note.get(tonic).chroma ?? 0
-
-  const chromaticNames =
-    enharmonicDisplay === 'sharp' ? CHROMATIC_SHARP_NAMES :
-    enharmonicDisplay === 'flat'  ? CHROMATIC_FLAT_NAMES  :
-    CHROMATIC_BOTH_NAMES
-
-  const scaleNoteNameByChroma: Record<number, string> = {}
-  for (const scaleNote of scaleNotes) {
-    const chroma = Note.get(scaleNote).chroma ?? 0
-    scaleNoteNameByChroma[chroma] = Note.get(scaleNote).pc ?? scaleNote
-  }
-
+  const chromaticNames = getChromaticNames(enharmonicDisplay)
+  const degreeIndexByChroma = buildDegreeIndexByChroma(scaleNotes)
   const degreeLabels = mode === 'major' ? DEGREE_LABELS_MAJOR : DEGREE_LABELS_NATURAL_MINOR
-  const cells: ChromaticCellData[] = []
+  const cells: CellData[] = []
 
   for (let semitones = 0; semitones <= 12; semitones++) {
     const absoluteChroma = (tonicChroma + semitones) % 12
     const isOctave = semitones === 12
-    const isInScale = absoluteChroma in scaleNoteNameByChroma
+    const isInScale = absoluteChroma in degreeIndexByChroma
 
     let noteName: string
     if (isOctave) {
       noteName = Note.get(tonic).pc ?? tonic
     } else if (isInScale) {
-      noteName = scaleNoteNameByChroma[absoluteChroma]
+      noteName = Note.get(scaleNotes[degreeIndexByChroma[absoluteChroma]]).pc ?? scaleNotes[degreeIndexByChroma[absoluteChroma]]
     } else {
       noteName = chromaticNames[absoluteChroma]
     }
 
-    let degreeLabel: string | null = null
-    if (isInScale && !isOctave) {
-      const degreeIndex = scaleNotes.findIndex(
-        (n) => (Note.get(n).chroma ?? 0) === absoluteChroma
-      )
-      if (degreeIndex !== -1) degreeLabel = degreeLabels[degreeIndex] ?? null
-    }
+    const degreeLabel = (isInScale && !isOctave)
+      ? (degreeLabels[degreeIndexByChroma[absoluteChroma]] ?? null)
+      : null
 
-    cells.push({ semitones, noteName, degreeLabel, isInScale })
+    cells.push({ semitones, noteName, degreeLabel, isInScale, isNoteInMain: true, isChordInMain: true })
   }
 
   return cells
-}
-
-export interface VariantCellData {
-  semitones: number
-  noteName: string
-  degreeLabel: string | null
-  isInVariant: boolean
-  isHighlighted: boolean
 }
 
 export function buildVariantRowData(
   tonic: string,
   variant: MinorVariant,
   enharmonicDisplay: EnharmonicDisplay = 'both'
-): VariantCellData[] {
-  const naturalMinorChromas = new Set(
-    Scale.get(`${tonic} minor`).notes.map(n => Note.get(n).chroma ?? 0)
-  )
+): CellData[] {
+  const naturalMinorNotes = Scale.get(`${tonic} minor`).notes
+  const naturalMinorDegreeIndexByChroma = buildDegreeIndexByChroma(naturalMinorNotes)
 
   const variantNotes = Scale.get(`${tonic} ${variant}`).notes
-  const variantNoteByChroma: Record<number, string> = {}
-  const degreeLabelByChroma: Record<number, string> = {}
-  const degreeLabels = variant === 'harmonic minor'
-    ? DEGREE_LABELS_HARMONIC_MINOR
-    : DEGREE_LABELS_MELODIC_MINOR
-
-  for (let i = 0; i < variantNotes.length; i++) {
-    const chroma = Note.get(variantNotes[i]).chroma ?? 0
-    variantNoteByChroma[chroma] = Note.get(variantNotes[i]).pc ?? variantNotes[i]
-    degreeLabelByChroma[chroma] = degreeLabels[i]
-  }
+  const variantDegreeIndexByChroma = buildDegreeIndexByChroma(variantNotes)
+  const degreeLabels = variant === 'harmonic minor' ? DEGREE_LABELS_HARMONIC_MINOR : DEGREE_LABELS_MELODIC_MINOR
+  const variantQualities = variant === 'harmonic minor' ? CHORD_QUALITIES_HARMONIC_MINOR : CHORD_QUALITIES_MELODIC_MINOR
 
   const tonicChroma = Note.get(tonic).chroma ?? 0
-  const chromaticNames =
-    enharmonicDisplay === 'sharp' ? CHROMATIC_SHARP_NAMES :
-    enharmonicDisplay === 'flat'  ? CHROMATIC_FLAT_NAMES  :
-    CHROMATIC_BOTH_NAMES
-
-  const cells: VariantCellData[] = []
+  const chromaticNames = getChromaticNames(enharmonicDisplay)
+  const cells: CellData[] = []
 
   for (let semitones = 0; semitones <= 12; semitones++) {
     const absoluteChroma = (tonicChroma + semitones) % 12
     const isOctave = semitones === 12
-    const isInVariant = isOctave || absoluteChroma in variantNoteByChroma
-    const isHighlighted = !isOctave && isInVariant && !naturalMinorChromas.has(absoluteChroma)
+    const isInScale = isOctave || absoluteChroma in variantDegreeIndexByChroma
+    const isNoteInMain = isOctave || absoluteChroma in naturalMinorDegreeIndexByChroma
+
+    let isChordInMain = isNoteInMain
+    if (!isOctave && isInScale && isNoteInMain) {
+      const variantIdx = variantDegreeIndexByChroma[absoluteChroma]
+      const mainIdx = naturalMinorDegreeIndexByChroma[absoluteChroma]
+      isChordInMain = variantQualities[variantIdx] === CHORD_QUALITIES_NATURAL_MINOR[mainIdx]
+    }
 
     let noteName: string
     if (isOctave) {
       noteName = Note.get(tonic).pc ?? tonic
-    } else if (isInVariant) {
-      noteName = variantNoteByChroma[absoluteChroma]
+    } else if (isInScale) {
+      noteName = Note.get(variantNotes[variantDegreeIndexByChroma[absoluteChroma]]).pc ?? variantNotes[variantDegreeIndexByChroma[absoluteChroma]]
     } else {
       noteName = chromaticNames[absoluteChroma]
     }
 
-    const degreeLabel = (!isOctave && isInVariant)
-      ? (degreeLabelByChroma[absoluteChroma] ?? null)
+    const degreeLabel = (isInScale && !isOctave)
+      ? (degreeLabels[variantDegreeIndexByChroma[absoluteChroma]] ?? null)
       : null
 
-    cells.push({ semitones, noteName, degreeLabel, isInVariant, isHighlighted })
+    cells.push({ semitones, noteName, degreeLabel, isInScale, isNoteInMain, isChordInMain })
+  }
+
+  return cells
+}
+
+export function buildNeighbourRowData(
+  neighbourTonic: string,
+  mode: Mode,
+  mainTonic: string,
+  enharmonicDisplay: EnharmonicDisplay = 'both'
+): CellData[] {
+  const mainNotes = Scale.get(`${mainTonic} ${getTonalScaleName(mode)}`).notes
+  const mainDegreeIndexByChroma = buildDegreeIndexByChroma(mainNotes)
+
+  const neighbourNotes = Scale.get(`${neighbourTonic} ${getTonalScaleName(mode)}`).notes
+  const neighbourDegreeIndexByChroma = buildDegreeIndexByChroma(neighbourNotes)
+  const degreeLabels = mode === 'major' ? DEGREE_LABELS_MAJOR : DEGREE_LABELS_NATURAL_MINOR
+  const modeQualities = mode === 'major' ? CHORD_QUALITIES_MAJOR : CHORD_QUALITIES_NATURAL_MINOR
+
+  const tonicChroma = Note.get(neighbourTonic).chroma ?? 0
+  const chromaticNames = getChromaticNames(enharmonicDisplay)
+  const cells: CellData[] = []
+
+  for (let semitones = 0; semitones <= 12; semitones++) {
+    const absoluteChroma = (tonicChroma + semitones) % 12
+    const isOctave = semitones === 12
+    const isInScale = isOctave || absoluteChroma in neighbourDegreeIndexByChroma
+    const isNoteInMain = isOctave || absoluteChroma in mainDegreeIndexByChroma
+
+    let isChordInMain = isNoteInMain
+    if (!isOctave && isInScale && isNoteInMain) {
+      const neighbourIdx = neighbourDegreeIndexByChroma[absoluteChroma]
+      const mainIdx = mainDegreeIndexByChroma[absoluteChroma]
+      isChordInMain = modeQualities[neighbourIdx] === modeQualities[mainIdx]
+    }
+
+    let noteName: string
+    if (isOctave) {
+      noteName = Note.get(neighbourTonic).pc ?? neighbourTonic
+    } else if (isInScale) {
+      noteName = Note.get(neighbourNotes[neighbourDegreeIndexByChroma[absoluteChroma]]).pc ?? neighbourNotes[neighbourDegreeIndexByChroma[absoluteChroma]]
+    } else {
+      noteName = chromaticNames[absoluteChroma]
+    }
+
+    const degreeLabel = (isInScale && !isOctave)
+      ? (degreeLabels[neighbourDegreeIndexByChroma[absoluteChroma]] ?? null)
+      : null
+
+    cells.push({ semitones, noteName, degreeLabel, isInScale, isNoteInMain, isChordInMain })
   }
 
   return cells

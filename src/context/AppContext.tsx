@@ -1,10 +1,12 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import type { IntervalNomenclature } from '../data/intervals'
+import i18n from '../i18n'
 
 export type Mode = 'major' | 'natural minor'
 export type EnharmonicDisplay = 'both' | 'sharp' | 'flat'
 export type Instrument = 'guitar' | 'piano'
+export type Language = 'fr' | 'en'
 
 interface AppState {
   selectedTonic: string
@@ -12,6 +14,7 @@ interface AppState {
   enharmonicDisplay: EnharmonicDisplay
   intervalNomenclature: IntervalNomenclature
   selectedInstrument: Instrument
+  language: Language
   showMinorVariants: boolean
   showBlockTitles: boolean
   showRelative: boolean
@@ -21,6 +24,7 @@ interface AppState {
   setEnharmonicDisplay: (value: EnharmonicDisplay) => void
   setIntervalNomenclature: (value: IntervalNomenclature) => void
   setSelectedInstrument: (value: Instrument) => void
+  setLanguage: (value: Language) => void
   setShowMinorVariants: (value: boolean) => void
   setShowBlockTitles: (value: boolean) => void
   setShowRelative: (value: boolean) => void
@@ -33,6 +37,7 @@ interface PersistedSettings {
   enharmonicDisplay: EnharmonicDisplay
   intervalNomenclature: IntervalNomenclature
   selectedInstrument: Instrument
+  language: Language
   showMinorVariants: boolean
   showBlockTitles: boolean
   showRelative: boolean
@@ -43,6 +48,7 @@ const DEFAULT_SETTINGS: PersistedSettings = {
   enharmonicDisplay: 'both',
   intervalNomenclature: 'anglo',
   selectedInstrument: 'guitar',
+  language: 'fr',
   showMinorVariants: true,
   showBlockTitles: true,
   showRelative: true,
@@ -69,28 +75,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [enharmonicDisplay, setEnharmonicDisplay] = useState<EnharmonicDisplay>(saved.enharmonicDisplay)
   const [intervalNomenclature, setIntervalNomenclature] = useState<IntervalNomenclature>(saved.intervalNomenclature)
   const [selectedInstrument, setSelectedInstrument] = useState<Instrument>(saved.selectedInstrument)
+  const [language, setLanguage] = useState<Language>(saved.language)
   const [showMinorVariants, setShowMinorVariants] = useState<boolean>(saved.showMinorVariants)
   const [showBlockTitles, setShowBlockTitles] = useState<boolean>(saved.showBlockTitles)
   const [showRelative, setShowRelative] = useState<boolean>(saved.showRelative)
   const [showNeighbours, setShowNeighbours] = useState<boolean>(saved.showNeighbours)
 
   useEffect(() => {
+    i18n.changeLanguage(language)
+  }, [language])
+
+  useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       enharmonicDisplay,
       intervalNomenclature,
       selectedInstrument,
+      language,
       showMinorVariants,
       showBlockTitles,
       showRelative,
       showNeighbours,
     }))
-  }, [enharmonicDisplay, intervalNomenclature, selectedInstrument, showMinorVariants, showBlockTitles, showRelative, showNeighbours])
+  }, [enharmonicDisplay, intervalNomenclature, selectedInstrument, language, showMinorVariants, showBlockTitles, showRelative, showNeighbours])
 
   return (
     <AppContext.Provider
       value={{
-        selectedTonic, selectedMode, enharmonicDisplay, intervalNomenclature, selectedInstrument, showMinorVariants, showBlockTitles, showRelative, showNeighbours,
-        setSelectedTonic, setSelectedMode, setEnharmonicDisplay, setIntervalNomenclature, setSelectedInstrument, setShowMinorVariants, setShowBlockTitles, setShowRelative, setShowNeighbours,
+        selectedTonic, selectedMode, enharmonicDisplay, intervalNomenclature, selectedInstrument, language, showMinorVariants, showBlockTitles, showRelative, showNeighbours,
+        setSelectedTonic, setSelectedMode, setEnharmonicDisplay, setIntervalNomenclature, setSelectedInstrument, setLanguage, setShowMinorVariants, setShowBlockTitles, setShowRelative, setShowNeighbours,
       }}
     >
       {children}

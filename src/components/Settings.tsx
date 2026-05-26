@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '../context/AppContext'
-import type { EnharmonicDisplay, Instrument } from '../context/AppContext'
+import type { EnharmonicDisplay, Instrument, Language } from '../context/AppContext'
 import type { IntervalNomenclature } from '../data/intervals'
 import { Toggle } from './Sidebar'
 
@@ -41,6 +41,7 @@ export function Settings() {
     enharmonicDisplay, setEnharmonicDisplay,
     intervalNomenclature, setIntervalNomenclature,
     selectedInstrument, setSelectedInstrument,
+    language, setLanguage,
     showBlockTitles, setShowBlockTitles,
   } = useApp()
 
@@ -59,6 +60,11 @@ export function Settings() {
   const instrumentOptions: { value: Instrument; label: string }[] = [
     { value: 'guitar', label: t('settings.instrument.guitar') },
     { value: 'piano',  label: t('settings.instrument.piano')  },
+  ]
+
+  const languageOptions: { value: Language; label: string }[] = [
+    { value: 'fr', label: 'Français' },
+    { value: 'en', label: 'English'  },
   ]
 
   return (
@@ -124,6 +130,17 @@ export function Settings() {
                   options={instrumentOptions}
                   selected={selectedInstrument}
                   onSelect={setSelectedInstrument}
+                />
+              </div>
+
+              <div>
+                <p className="text-xs font-medium text-gray-500 mb-2">
+                  {t('settings.language.label')}
+                </p>
+                <OptionRow
+                  options={languageOptions}
+                  selected={language}
+                  onSelect={setLanguage}
                 />
               </div>
 
