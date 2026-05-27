@@ -31,6 +31,7 @@
     }
   },
   "sidebar": {
+    "secondary_dominants": "Dom. secondaires",
     "minor_variants": "Variantes mineures",
     "relative": "Relative",
     "neighbours": "Voisins"
@@ -43,6 +44,7 @@
   },
   "block_labels": {
     "tonality": "Clé",
+    "secondary_dominants": "Dom. sec.",
     "minor_variants": "Variantes mineures",
     "relative": "Relative",
     "neighbours": "Voisins"

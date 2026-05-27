@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useApp } from '../context/AppContext'
-import { buildChromaticRowData, buildVariantRowData, getRelativeTonic, getNeighbourTonics, buildNeighbourRowData } from '../music/scaleUtils'
+import { buildChromaticRowData, buildVariantRowData, buildSecondaryDominantRowData, getRelativeTonic, getNeighbourTonics, buildNeighbourRowData } from '../music/scaleUtils'
 import type { CellData } from '../music/scaleUtils'
 import { INTERVAL_LABELS } from '../data/intervals'
 
@@ -62,10 +62,12 @@ function NotesRow({ cells, titleW, label, closing = false }: {
 
 export function ChromaticTemplate() {
   const { t } = useTranslation()
-  const { selectedTonic, selectedMode, enharmonicDisplay, intervalNomenclature, showMinorVariants, showBlockTitles, showRelative, showNeighbours } = useApp()
+  const { selectedTonic, selectedMode, enharmonicDisplay, intervalNomenclature, showSecondaryDominants, showMinorVariants, showBlockTitles, showRelative, showNeighbours } = useApp()
 
   const cells = buildChromaticRowData(selectedTonic, selectedMode, enharmonicDisplay)
   const intervalLabels = INTERVAL_LABELS[intervalNomenclature]
+
+  const secDomCells = showSecondaryDominants ? buildSecondaryDominantRowData(selectedTonic, selectedMode, enharmonicDisplay) : []
 
   const showVariants = selectedMode === 'natural minor' && showMinorVariants
   const harmonicCells = showVariants ? buildVariantRowData(selectedTonic, 'harmonic minor', enharmonicDisplay) : []
@@ -98,7 +100,13 @@ export function ChromaticTemplate() {
 
         {/* Tonality block */}
         <DegreeRow cells={cells} titleW={titleW} title={t('block_labels.tonality')} spacing={false} />
-        <NotesRow  cells={cells} titleW={titleW} label={scaleLabel} closing />
+        <NotesRow  cells={cells} titleW={titleW} label={scaleLabel} closing={!showSecondaryDominants} />
+
+        {/* Secondary dominants block */}
+        {showSecondaryDominants && (<>
+          <DegreeRow cells={secDomCells} titleW={titleW} title={t('block_labels.secondary_dominants')} />
+          <NotesRow  cells={secDomCells} titleW={titleW} closing />
+        </>)}
 
         {/* Minor variants block */}
         {showVariants && (<>

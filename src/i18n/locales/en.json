@@ -31,6 +31,7 @@
     }
   },
   "sidebar": {
+    "secondary_dominants": "Sec. dominants",
     "minor_variants": "Minor variants",
     "relative": "Relative",
     "neighbours": "Neighbours"
@@ -43,6 +44,7 @@
   },
   "block_labels": {
     "tonality": "Key",
+    "secondary_dominants": "Sec. dom.",
     "minor_variants": "Minor variants",
     "relative": "Relative",
     "neighbours": "Neighbours"

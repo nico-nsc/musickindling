@@ -145,6 +145,56 @@ export function buildVariantRowData(
   return cells
 }
 
+export function buildSecondaryDominantRowData(
+  tonic: string,
+  mode: Mode,
+  enharmonicDisplay: EnharmonicDisplay = 'both'
+): CellData[] {
+  const scaleNotes = getScaleNotes(tonic, mode)
+  const mainDegreeIndexByChroma = buildDegreeIndexByChroma(scaleNotes)
+  const modeQualities = mode === 'major' ? CHORD_QUALITIES_MAJOR : CHORD_QUALITIES_NATURAL_MINOR
+  const degreeLabels = mode === 'major' ? DEGREE_LABELS_MAJOR : DEGREE_LABELS_NATURAL_MINOR
+  const tonicChroma = Note.get(tonic).chroma ?? 0
+  const chromaticNames = getChromaticNames(enharmonicDisplay)
+
+  // For each scale degree chroma, precompute its secondary dominant root
+  const sdByDegreeChroma: Record<number, { noteName: string; sdChroma: number }> = {}
+  for (const note of scaleNotes) {
+    const degChroma = Note.get(note).chroma ?? 0
+    const sdRoot = Note.transpose(note, '5P')
+    sdByDegreeChroma[degChroma] = {
+      noteName: Note.get(sdRoot).pc ?? sdRoot,
+      sdChroma: Note.get(sdRoot).chroma ?? 0,
+    }
+  }
+
+  const cells: CellData[] = []
+
+  for (let semitones = 0; semitones <= 12; semitones++) {
+    const absoluteChroma = (tonicChroma + semitones) % 12
+    const isOctave = semitones === 12
+    // Aligned with main scale degrees: isInScale follows the same positions as the main scale
+    const isInScale = isOctave || absoluteChroma in mainDegreeIndexByChroma
+
+    if (!isInScale) {
+      cells.push({ semitones, noteName: chromaticNames[absoluteChroma], degreeLabel: null, isInScale: false, isNoteInMain: false, isChordInMain: false })
+      continue
+    }
+
+    const sd = sdByDegreeChroma[absoluteChroma]
+    const sdChroma = sd.sdChroma
+    const isNoteInMain = sdChroma in mainDegreeIndexByChroma
+    const isChordInMain = isNoteInMain && modeQualities[mainDegreeIndexByChroma[sdChroma]] === 'M'
+
+    const degreeIdx = mainDegreeIndexByChroma[absoluteChroma] ?? 0
+    const degreeLabel = isOctave ? null : `V/${degreeLabels[degreeIdx]}`
+
+    cells.push({ semitones, noteName: sd.noteName, degreeLabel, isInScale, isNoteInMain, isChordInMain })
+  }
+
+  return cells
+}
+
 export function buildNeighbourRowData(
   neighbourTonic: string,
   mode: Mode,

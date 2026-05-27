@@ -15,6 +15,7 @@ interface AppState {
   intervalNomenclature: IntervalNomenclature
   selectedInstrument: Instrument
   language: Language
+  showSecondaryDominants: boolean
   showMinorVariants: boolean
   showBlockTitles: boolean
   showRelative: boolean
@@ -25,6 +26,7 @@ interface AppState {
   setIntervalNomenclature: (value: IntervalNomenclature) => void
   setSelectedInstrument: (value: Instrument) => void
   setLanguage: (value: Language) => void
+  setShowSecondaryDominants: (value: boolean) => void
   setShowMinorVariants: (value: boolean) => void
   setShowBlockTitles: (value: boolean) => void
   setShowRelative: (value: boolean) => void
@@ -38,6 +40,7 @@ interface PersistedSettings {
   intervalNomenclature: IntervalNomenclature
   selectedInstrument: Instrument
   language: Language
+  showSecondaryDominants: boolean
   showMinorVariants: boolean
   showBlockTitles: boolean
   showRelative: boolean
@@ -49,6 +52,7 @@ const DEFAULT_SETTINGS: PersistedSettings = {
   intervalNomenclature: 'anglo',
   selectedInstrument: 'guitar',
   language: 'fr',
+  showSecondaryDominants: true,
   showMinorVariants: true,
   showBlockTitles: true,
   showRelative: true,
@@ -76,6 +80,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [intervalNomenclature, setIntervalNomenclature] = useState<IntervalNomenclature>(saved.intervalNomenclature)
   const [selectedInstrument, setSelectedInstrument] = useState<Instrument>(saved.selectedInstrument)
   const [language, setLanguage] = useState<Language>(saved.language)
+  const [showSecondaryDominants, setShowSecondaryDominants] = useState<boolean>(saved.showSecondaryDominants)
   const [showMinorVariants, setShowMinorVariants] = useState<boolean>(saved.showMinorVariants)
   const [showBlockTitles, setShowBlockTitles] = useState<boolean>(saved.showBlockTitles)
   const [showRelative, setShowRelative] = useState<boolean>(saved.showRelative)
@@ -91,18 +96,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       intervalNomenclature,
       selectedInstrument,
       language,
+      showSecondaryDominants,
       showMinorVariants,
       showBlockTitles,
       showRelative,
       showNeighbours,
     }))
-  }, [enharmonicDisplay, intervalNomenclature, selectedInstrument, language, showMinorVariants, showBlockTitles, showRelative, showNeighbours])
+  }, [enharmonicDisplay, intervalNomenclature, selectedInstrument, language, showSecondaryDominants, showMinorVariants, showBlockTitles, showRelative, showNeighbours])
 
   return (
     <AppContext.Provider
       value={{
-        selectedTonic, selectedMode, enharmonicDisplay, intervalNomenclature, selectedInstrument, language, showMinorVariants, showBlockTitles, showRelative, showNeighbours,
-        setSelectedTonic, setSelectedMode, setEnharmonicDisplay, setIntervalNomenclature, setSelectedInstrument, setLanguage, setShowMinorVariants, setShowBlockTitles, setShowRelative, setShowNeighbours,
+        selectedTonic, selectedMode, enharmonicDisplay, intervalNomenclature, selectedInstrument, language, showSecondaryDominants, showMinorVariants, showBlockTitles, showRelative, showNeighbours,
+        setSelectedTonic, setSelectedMode, setEnharmonicDisplay, setIntervalNomenclature, setSelectedInstrument, setLanguage, setShowSecondaryDominants, setShowMinorVariants, setShowBlockTitles, setShowRelative, setShowNeighbours,
       }}
     >
       {children}

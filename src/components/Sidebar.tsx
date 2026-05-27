@@ -22,10 +22,14 @@ export function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: 
 
 export function SidebarContent() {
   const { t } = useTranslation()
-  const { showMinorVariants, setShowMinorVariants, showRelative, setShowRelative, showNeighbours, setShowNeighbours } = useApp()
+  const { showSecondaryDominants, setShowSecondaryDominants, showMinorVariants, setShowMinorVariants, showRelative, setShowRelative, showNeighbours, setShowNeighbours } = useApp()
 
   return (
     <div className="flex flex-col gap-3">
+      <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
+        <span className="text-sm text-gray-700">{t('sidebar.secondary_dominants')}</span>
+        <Toggle checked={showSecondaryDominants} onChange={setShowSecondaryDominants} />
+      </label>
       <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
         <span className="text-sm text-gray-700">{t('sidebar.minor_variants')}</span>
         <Toggle checked={showMinorVariants} onChange={setShowMinorVariants} />

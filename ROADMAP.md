@@ -9,7 +9,7 @@
 - [x] Step 4 — Relative
 - [x] Step 5 — Circle of fifths neighbours
 - [x] Step 6 — Language toggle + code refactor
-- [ ] Step 7 — Secondary dominants
+- [x] Step 7 — Secondary dominants
 - [ ] Step 8 — Harmonic proximity
 - [ ] Step 9 — Scale reference
 - [ ] Step 10 — Chord diagrams
@@ -171,17 +171,21 @@ No transition chords in this step — deferred (see Ideas to explore)
 
 ---
 
-## Step 7 — Secondary dominants
+## Step 7 — Secondary dominants ✓
 
-Toggle on/off (on by default)
-One additional row aligned on the 12-note chromatic template
+Toggle in sidebar (on by default, persisted)
+Block always positioned directly below the main tonality block (semantic dependency)
 
-Color coding:
-- White = chord present in the reference scale
-- Yellow = chord outside the reference scale
-- Red = V/ii° (avoid — resolves to a diminished chord)
+Degree row: V/I, V/ii, V/iii, V/IV, V/V, V/vi, V/vii°
+Notes row: root note of each secondary dominant (always a major chord)
+Grey cells for chromatic positions with no secondary dominant root
 
-Optional toggle: "show 7th" (default off)
+Color coding (reuses isNoteInMain / isChordInMain):
+- White = secondary dominant root already has a major chord in the main scale (V/I, V/IV)
+- Yellow light = root exists in scale but as a different chord quality
+- Yellow dark = root absent from main scale entirely (V/vii°)
+
+Optional toggle: "show 7th" (default off) — deferred
 
 ---
 
